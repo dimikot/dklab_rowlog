@@ -33,7 +33,7 @@ CREATE TYPE enum_tg_op AS ENUM (
 -- Name: row2hstore(character varying, name, name, character varying[]); Type: FUNCTION; Schema: rowlog; Owner: postgres
 --
 
-CREATE FUNCTION row2hstore(in_rec character varying, in_nspname name, in_relname name, in_fields character varying[]) RETURNS hstore.hstore
+CREATE OR REPLACE FUNCTION row2hstore(in_rec character varying, in_nspname name, in_relname name, in_fields character varying[]) RETURNS hstore.hstore
     LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -66,7 +66,7 @@ $$;
 -- Name: t_rowlog_aiud(); Type: FUNCTION; Schema: rowlog; Owner: postgres
 --
 
-CREATE FUNCTION t_rowlog_aiud() RETURNS trigger
+CREATE OR REPLACE FUNCTION rowlog.t_rowlog_aiud() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 DECLARE
@@ -160,7 +160,7 @@ BEGIN
     -- Detect PK and author ID.
     pk_quoted := 'NULL';
     IF a_pk IS NOT NULL AND a_pk <> '' THEN
-        pk_quoted := quote_literal(r_new->a_pk);
+        pk_quoted := COALESCE(quote_literal(COALESCE(r_new->a_pk, r_old->a_pk)), 'NULL');
     END IF;
     author_quoted := 'NULL';
     IF a_author IS NOT NULL AND (r_new->a_author) IS NOT NULL THEN
